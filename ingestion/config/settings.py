@@ -86,4 +86,23 @@ class Settings:
         os.getenv("MAX_RETURN_DAYS", "30")
     )
 
+    inventory_lookback_days: int = int(
+        os.getenv("INVENTORY_LOOKBACK_DAYS", "30")
+    )
+
+    campaign_record_count: int = int(
+        os.getenv("CAMPAIGN_RECORD_COUNT", "24")
+    )
+
+    web_event_record_count: int = int(
+        os.getenv("WEB_EVENT_RECORD_COUNT", "20000")
+    )
+
+    web_event_lookback_days: int = int(
+        os.getenv("WEB_EVENT_LOOKBACK_DAYS", "90")
+    )
+
+    anonymous_event_rate: float = float(
+        os.getenv("ANONYMOUS_EVENT_RATE", "0.25")
+    )
 settings = Settings()
