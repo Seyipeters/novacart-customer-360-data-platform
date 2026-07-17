@@ -58,5 +58,16 @@ class Settings:
     archive_directory: Path = data_directory / "archive"
     logs_directory: Path = PROJECT_ROOT / "logs"
 
+    order_record_count: int = int(
+        os.getenv("ORDER_RECORD_COUNT", "2500")
+    )
+
+    order_lookback_days: int = int(
+        os.getenv("ORDER_LOOKBACK_DAYS", "365")
+    )
+
+    max_items_per_order: int = int(
+        os.getenv("MAX_ITEMS_PER_ORDER", "5")
+    )
 
 settings = Settings()
