@@ -70,4 +70,20 @@ class Settings:
         os.getenv("MAX_ITEMS_PER_ORDER", "5")
     )
 
+    payment_retry_rate: float = float(
+        os.getenv("PAYMENT_RETRY_RATE", "0.06")
+    )
+
+    processing_payment_failure_rate: float = float(
+        os.getenv("PROCESSING_PAYMENT_FAILURE_RATE", "0.15")
+    )
+
+    return_rate: float = float(
+        os.getenv("RETURN_RATE", "0.08")
+    )
+
+    max_return_days: int = int(
+        os.getenv("MAX_RETURN_DAYS", "30")
+    )
+
 settings = Settings()
