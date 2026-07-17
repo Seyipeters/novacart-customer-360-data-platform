@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import date
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -37,6 +38,18 @@ class Settings:
 
     data_generation_seed: int = int(
         os.getenv("DATA_GENERATION_SEED", "42")
+    )
+
+    data_as_of_date: date = date.fromisoformat(
+        os.getenv("DATA_AS_OF_DATE", date.today().isoformat())
+    )
+
+    customer_record_count: int = int(
+        os.getenv("CUSTOMER_RECORD_COUNT", "500")
+    )
+
+    product_record_count: int = int(
+        os.getenv("PRODUCT_RECORD_COUNT", "120")
     )
 
     data_directory: Path = PROJECT_ROOT / "data"
