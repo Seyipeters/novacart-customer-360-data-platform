@@ -1,0 +1,54 @@
+# Environment variables and secrets
+.env
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+logs/
+airflow/logs/
+*.log
+
+# Generated and rejected datasets
+data/generated/
+data/rejected/
+data/archive/
+
+# Airflow
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/webserver_config.py
+airflow/standalone_admin_password.txt
+
+# dbt
+dbt_novacart/target/
+dbt_novacart/logs/
+dbt_novacart/dbt_packages/
+dbt_novacart/profiles.yml
+
+# Power BI
+*.pbix
+*.pbit
+
+# IDE and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
