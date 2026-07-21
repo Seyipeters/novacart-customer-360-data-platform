@@ -1,0 +1,51 @@
+COPY INTO RAW_ORDERS (
+    order_id,
+    customer_id,
+    order_timestamp,
+    order_date,
+    order_status,
+    sales_channel,
+    shipping_city,
+    shipping_region,
+    shipping_country,
+    currency,
+    item_count,
+    total_quantity,
+    subtotal_amount,
+    discount_amount,
+    shipping_amount,
+    order_total,
+    updated_at,
+    source_file,
+    source_file_row_number,
+    source_file_content_key,
+    source_file_last_modified,
+    loaded_at
+)
+FROM (
+    SELECT
+        t.$1::VARCHAR,
+        t.$2::VARCHAR,
+        t.$3::TIMESTAMP_NTZ,
+        t.$4::DATE,
+        t.$5::VARCHAR,
+        t.$6::VARCHAR,
+        t.$7::VARCHAR,
+        t.$8::VARCHAR,
+        t.$9::VARCHAR,
+        t.$10::VARCHAR,
+        t.$11::NUMBER,
+        t.$12::NUMBER,
+        t.$13::NUMBER(18,2),
+        t.$14::NUMBER(18,2),
+        t.$15::NUMBER(18,2),
+        t.$16::NUMBER(18,2),
+        t.$17::TIMESTAMP_NTZ,
+        METADATA$FILENAME,
+        METADATA$FILE_ROW_NUMBER,
+        METADATA$FILE_CONTENT_KEY,
+        METADATA$FILE_LAST_MODIFIED,
+        METADATA$START_SCAN_TIME
+    FROM @NOVACART_S3_STAGE/ecommerce/orders/ t
+)
+ON_ERROR = 'ABORT_STATEMENT';
