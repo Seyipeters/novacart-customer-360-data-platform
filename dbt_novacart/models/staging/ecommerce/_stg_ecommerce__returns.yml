@@ -1,0 +1,148 @@
+version: 2
+
+models:
+  - name: stg_ecommerce__returns
+    description: |
+      Cleaned and standardized return records from the raw ecommerce source. 
+      This staging model applies consistent formatting, type casting, and transformations 
+      to return attributes while preserving traceability to the original source records.
+      
+      Key transformations applied:
+      - Text fields (return_id, order_id, product_id, customer_id) are trimmed and uppercased for consistency
+      - Financial amounts are cast to fixed-point decimal (18,2) to prevent rounding errors
+      - A unique source record identifier is generated via SHA-256 hashing
+      - All source metadata is preserved for lineage and debugging
+    
+    columns:
+      - name: return_source_record_id
+        description: |
+          Unique SHA-256 hash identifier for the exact source record. Generated from the 
+          combination of source_file_content_key and source_file_row_number to ensure 
+          stable deduplication across loads and enable tracking of record changes.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: return_id
+        description: |
+          Business identifier for the return transaction. Trimmed and normalized for consistency 
+          across the data platform.
+        data_tests:
+          - not_null
+
+      - name: order_id
+        description: |
+          Business identifier for the order associated with this return. Trimmed and normalized 
+          for consistency across the data platform.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: order_item_id
+        description: |
+          Business identifier for the specific order item being returned. Trimmed and normalized 
+          for consistency across the data platform.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_ecommerce__order_items')
+                field: order_item_id
+
+      - name: customer_id
+        description: |
+          Business identifier for the customer initiating the return. Trimmed and normalized 
+          for consistency across the data platform.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_crm__customers')
+                field: customer_id
+
+      - name: product_id
+        description: |
+          Business identifier for the product being returned. Trimmed and normalized 
+          for consistency across the data platform.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: return_date
+        description: |
+          Date on which the return was initiated. Cast to DATE type for consistency.
+        data_tests:
+          - not_null
+
+      - name: return_quantity
+        description: |
+          Quantity of the product being returned. Cast to INTEGER type for consistency.
+        data_tests:
+          - not_null
+
+      - name: return_reason
+        description: |
+          Reason provided by the customer for initiating the return. Trimmed and uppercased 
+          for consistent reporting and analysis.
+        data_tests:
+          - not_null
+
+      - name: return_status
+        description: |
+          Current status of the return transaction (e.g., PENDING, APPROVED, REJECTED). 
+          Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null  
+
+      - name: refund_amount
+        description: |
+          Amount refunded to the customer for this return. Cast to fixed-point decimal (18,2) 
+          to prevent rounding errors.
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: |
+          Currency code for the refund amount (e.g., USD, EUR). Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: |
+          S3 file from which the return record was loaded. Trimmed for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: |
+          Original row number in the source CSV file for this return record. Trimmed for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: |
+          Unique content key for the source file from which the return record was loaded. Trimmed for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: |
+          Timestamp when the source file was last modified. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: |
+          Timestamp when Snowflake scanned and loaded the return record. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null
+
+
+
+      

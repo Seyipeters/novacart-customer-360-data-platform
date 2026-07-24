@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: stg_inventory_system__inventory_daily
+    description: >
+      Cleaned and standardised daily warehouse inventory records. The
+      model preserves one row per physical source record and retains
+      Snowflake ingestion metadata.
+
+    columns:
+      - name: inventory_source_record_id
+        description: >
+          Technical identifier generated from the source-file content key
+          and source-file row number.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: inventory_date
+        description: Business date represented by the inventory record.
+        data_tests:
+          - not_null
+
+      - name: warehouse_id
+        description: Business identifier for the warehouse.
+        data_tests:
+          - not_null
+
+      - name: product_id
+        description: Product represented by the inventory record.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: warehouse_name
+        description: Display name of the warehouse.
+        data_tests:
+          - not_null
+
+      - name: warehouse_city
+        description: City in which the warehouse is located.
+        data_tests:
+          - not_null
+
+      - name: warehouse_country
+        description: Warehouse country standardised to uppercase.
+        data_tests:
+          - not_null
+
+      - name: opening_stock
+        description: Available stock at the beginning of the business date.
+        data_tests:
+          - not_null
+
+      - name: received_quantity
+        description: Product units received during the business date.
+        data_tests:
+          - not_null
+
+      - name: sold_quantity
+        description: Product units sold during the business date.
+        data_tests:
+          - not_null
+
+      - name: damaged_quantity
+        description: Product units removed because of damage.
+        data_tests:
+          - not_null
+
+      - name: closing_stock
+        description: Available stock at the end of the business date.
+        data_tests:
+          - not_null
+
+      - name: unit_cost
+        description: Cost assigned to one product unit.
+        data_tests:
+          - not_null
+
+      - name: inventory_value
+        description: Closing stock multiplied by unit cost.
+        data_tests:
+          - not_null
+
+      - name: stockout_flag
+        description: Indicates that no closing inventory remains.
+        data_tests:
+          - not_null
+
+      - name: reorder_flag
+        description: Indicates that the product requires replenishment.
+        data_tests:
+          - not_null
+
+      - name: source_updated_at
+        description: Timestamp when the source inventory record was updated.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 file from which the inventory record originated.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: Original row number inside the source CSV.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the inventory record.
+        data_tests:
+          - not_null

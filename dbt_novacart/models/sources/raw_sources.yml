@@ -1,0 +1,299 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Raw NovaCart source tables loaded from Amazon S3 into Snowflake
+      through Snowpipe.
+
+    database: NOVACART_DB
+    schema: RAW
+    loader: Snowpipe
+
+    tables:
+      - name: customers
+        identifier: RAW_CUSTOMERS
+        description: CRM customer records loaded from Amazon S3 by Snowpipe.
+        config:
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: customer_id
+            description: Business identifier assigned by the CRM system.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 object from which the record was loaded.
+            data_tests:
+              - not_null
+
+          - name: source_file_row_number
+            description: Original row number inside the staged CSV file.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Timestamp when Snowflake scanned and loaded the record.
+            data_tests:
+              - not_null
+
+      - name: products
+        identifier: RAW_PRODUCTS
+        description: Product catalogue loaded from Amazon S3 by Snowpipe.
+
+        config:
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: product_id
+            description: Product business identifier.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the product record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: orders
+        identifier: RAW_ORDERS
+        description: E-commerce order headers loaded through snowpipe.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: order_id
+            description: E-commerce order business identifier.
+            data_tests:
+              - not_null
+
+          - name: customer_id
+            description: Customer identifier supplied by the source system.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the order record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: order_items
+        identifier: RAW_ORDER_ITEMS
+        description: Individual product lines belonging to orders.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: order_item_id
+            description: Business identifier for the order item.
+            data_tests:
+              - not_null
+
+          - name: order_id
+            description: Parent order business identifier.
+            data_tests:
+              - not_null
+
+          - name: product_id
+            description: ordered product identifier for the order item.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the order item record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: payments
+        identifier: RAW_PAYMENTS
+        description: Payment attempts received from the payment gateway.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: payment_id
+            description: Business identifier for the payment attempt.
+            data_tests:
+              - not_null
+              - unique
+
+          - name: order_id
+            description: E-commerce order business identifier associated with the payment.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the payment record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: returns
+        identifier: RAW_RETURNS
+        description: Returned order-item records and associated refunds.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: return_id
+            description: Business identifier for the return transaction.
+            data_tests:
+              - not_null
+
+          - name: order_id
+            description: E-commerce order business identifier associated with the return.
+            data_tests:
+              - not_null
+
+          - name: order_item_id
+            description: Business identifier for the specific order item being returned.
+            data_tests:
+              - not_null
+
+          - name: customer_id
+            description: Business identifier for the customer initiating the return.
+            data_tests:
+              - not_null
+
+          - name: product_id
+            description: Business identifier for the product being returned.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the return record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: inventory_daily
+        identifier: RAW_INVENTORY_DAILY
+        description: Daily product inventory by warehouse.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: inventory_date
+            description: Business date represented by the inventory record.
+            data_tests:
+              - not_null
+
+          - name: warehouse_id
+            description: Business identifier for the warehouse.
+            data_tests:
+              - not_null
+
+          - name: product_id
+            description: Product represented by the inventory record.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the inventory record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
+      - name: campaigns
+        identifier: RAW_CAMPAIGNS
+        description: Marketing campaign master data.
+
+      - name: web_events
+        identifier: RAW_WEB_EVENTS
+        description: Customer and anonymous website activity events.

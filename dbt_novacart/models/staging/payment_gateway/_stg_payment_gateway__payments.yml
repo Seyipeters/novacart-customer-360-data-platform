@@ -1,0 +1,119 @@
+version: 2
+
+models:
+  - name: stg_payment_gateway__payments
+    description: |
+      Cleaned and standardized payment gateway transaction records. This staging model applies consistent formatting, type casting, and transformations to payment attributes while preserving traceability to the original source records.
+      
+      Key transformations applied:
+      - Text fields (payment_id, order_id, customer_id, payment_method) are trimmed and uppercased for consistency
+      - Financial amounts are cast to fixed-point decimal (18,2) to prevent rounding errors
+      - A unique source record identifier is generated via SHA-256 hashing
+      - All source metadata is preserved for lineage and debugging
+    
+    columns:
+      - name: payment_source_record_id
+        description: |
+          Unique SHA-256 hash identifier for the exact source record. Generated from the 
+          combination of source_file_content_key and source_file_row_number to ensure 
+          stable deduplication across loads and enable tracking of record changes.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: payment_id
+        description: |
+          Business identifier for the payment transaction. Trimmed and normalized for consistency 
+          across the data platform.
+        data_tests:
+          - not_null
+
+      - name: order_id
+        description: |
+          Business identifier for the order associated with this payment. Trimmed and normalized 
+          for consistency across the data platform.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: payment_attempt_number
+        description: |
+          Sequential attempt number for the payment transaction. Trimmed and normalized for consistency 
+          across the data platform.
+        data_tests:
+          - not_null
+
+      - name: payment_method
+        description: |
+          Payment method used for the transaction (e.g., DEBIT_CARD, MOBILE_PAY, BANK_TRANSFER,CREDIT_CARD, PAYPAL). Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: payment_status
+        description: |
+          Status of the payment transaction (e.g., SUCCESS, FAILED, PENDING). Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: payment_amount
+        description: |
+          Amount of the payment transaction. Cast to fixed-point decimal (18,2) to prevent rounding errors. 
+        data_tests:
+          - not_null
+
+      - name: captured_amount
+        description: |
+          Amount captured for the payment transaction. Cast to fixed-point decimal (18,2) to prevent rounding errors. 
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: |
+          Currency code for the payment transaction (e.g., USD, EUR). Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: payment_timestamp
+        description: |
+          Timestamp when the payment transaction was initiated. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_record_arrived_at
+        description: |
+          Timestamp when the source record arrived in the ingestion system. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: |
+          S3 file from which the payment record was loaded. Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: |
+          Original row number in the source CSV file for this payment record. Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: |
+          Unique content key for the source file from which the payment record was loaded. Trimmed and uppercased for consistency.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: |
+          Timestamp when the source file was last modified. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: |
+          Timestamp when the payment record was loaded into the staging model. Cast to TIMESTAMP_NTZ for consistency.
+        data_tests:
+          - not_null

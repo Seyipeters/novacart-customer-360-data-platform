@@ -1,0 +1,97 @@
+version: 2
+
+models:
+  - name: stg_marketing_platform__campaigns
+    description: >
+      Cleaned and standardised marketing campaign records. The model
+      preserves one row per physical source record and retains Snowflake
+      ingestion metadata.
+
+    columns:
+      - name: campaign_source_record_id
+        description: >
+          Technical identifier generated from the source-file content key
+          and source-file row number.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: campaign_id
+        description: Campaign business identifier.
+        data_tests:
+          - not_null
+
+      - name: campaign_name
+        description: Marketing campaign display name.
+        data_tests:
+          - not_null
+
+      - name: campaign_channel
+        description: Campaign delivery channel standardised to uppercase.
+        data_tests:
+          - not_null
+
+      - name: campaign_objective
+        description: Primary campaign objective standardised to uppercase.
+        data_tests:
+          - not_null
+
+      - name: target_segment
+        description: Customer segment targeted by the campaign.
+        data_tests:
+          - not_null
+
+      - name: start_date
+        description: Date on which the campaign begins.
+        data_tests:
+          - not_null
+
+      - name: end_date
+        description: Date on which the campaign ends.
+        data_tests:
+          - not_null
+
+      - name: budget_amount
+        description: Approved campaign budget.
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: Currency used for the campaign budget.
+        data_tests:
+          - not_null
+
+      - name: campaign_status
+        description: Campaign status standardised to uppercase.
+        data_tests:
+          - not_null
+
+      - name: source_updated_at
+        description: Timestamp when the source campaign record was updated.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 object from which the campaign record originated.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: Original row number inside the source CSV.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: Unique content key for the source file from which the campaign record was loaded.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: Timestamp when the source file was last modified.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the campaign record.
+        data_tests:
+          - not_null
