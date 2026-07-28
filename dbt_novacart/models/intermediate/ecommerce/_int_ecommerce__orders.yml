@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: int_ecommerce__orders_current
+    description: |
+      One row per order, representing the current (most recent) version of each order
+      from stg_ecommerce__orders. Deduplicates orders that have multiple source records
+      over time (e.g. status updates) by keeping only the latest version per order_id.
+
+      Key transformations applied:
+      - Rows are ranked per order_id by source_updated_at (desc), with loaded_at as a tiebreaker
+      - Only the top-ranked (most recent) row per order_id is kept
+      - order_id is guaranteed unique in the output
+
+    columns:
+      - name: order_id
+        description: |
+          Business identifier for the order. This is the model's grain column — it must
+          be unique and non-null, otherwise the "one row per order" contract is broken.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_recency_rank
+        description: |
+          Rank of this row among all source records for the same order_id, ordered by
+          source_updated_at (desc) then loaded_at (desc). Must always be 1 here; any
+          other value means the dedup logic failed to collapse to a single current row.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1]

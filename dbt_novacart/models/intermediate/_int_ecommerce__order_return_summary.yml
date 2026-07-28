@@ -1,0 +1,206 @@
+version: 2
+
+models:
+
+  - name: int_ecommerce__order_return_summary
+    description: |
+      One row per current order containing consolidated item-level return
+      and completed-refund information.
+
+      The model starts from all current orders, ensuring that orders without
+      return requests remain represented.
+
+      Pending and rejected returns are reported separately and do not reduce
+      recognised item revenue. Only completed refunds reduce the calculated
+      net item revenue.
+
+    columns:
+      - name: order_id
+        description: Business identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: customer_id
+        description: Customer associated with the order.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_crm__customers_current')
+                field: customer_id
+
+      - name: order_date
+        description: Date when the order was placed.
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: Current status of the order.
+        data_tests:
+          - not_null
+
+      - name: order_currency
+        description: Currency recorded on the order.
+        data_tests:
+          - not_null
+
+      - name: order_total
+        description: Total order amount.
+        data_tests:
+          - not_null
+
+      - name: order_item_count
+        description: Number of order items associated with the order.
+        data_tests:
+          - not_null
+
+      - name: total_ordered_quantity
+        description: Total quantity ordered across all order items.
+        data_tests:
+          - not_null
+
+      - name: total_order_item_net_amount
+        description: Sum of net amounts across the order's items.
+        data_tests:
+          - not_null
+
+      - name: return_record_count
+        description: Total number of return records associated with the order.
+        data_tests:
+          - not_null
+
+      - name: completed_return_record_count
+        description: Number of completed return records for the order.
+        data_tests:
+          - not_null
+
+      - name: pending_return_record_count
+        description: Number of pending return records for the order.
+        data_tests:
+          - not_null
+
+      - name: rejected_return_record_count
+        description: Number of rejected return records for the order.
+        data_tests:
+          - not_null
+
+      - name: return_request_item_count
+        description: Number of order items with at least one return request.
+        data_tests:
+          - not_null
+
+      - name: completed_return_item_count
+        description: Number of order items with a completed return.
+        data_tests:
+          - not_null
+
+      - name: pending_return_item_count
+        description: Number of order items with a pending return.
+        data_tests:
+          - not_null
+
+      - name: requested_return_quantity
+        description: Quantity included across all return requests.
+        data_tests:
+          - not_null
+
+      - name: completed_return_quantity
+        description: Quantity associated with completed returns.
+        data_tests:
+          - not_null
+
+      - name: pending_return_quantity
+        description: Quantity associated with pending returns.
+        data_tests:
+          - not_null
+
+      - name: rejected_return_quantity
+        description: Quantity associated with rejected returns.
+        data_tests:
+          - not_null
+
+      - name: completed_refund_amount
+        description: Refund amount recognised from completed returns.
+        data_tests:
+          - not_null
+
+      - name: first_return_date
+        description: Earliest return date associated with the order.
+
+      - name: latest_return_date
+        description: Most recent return date associated with the order.
+
+      - name: net_item_revenue_after_refunds
+        description: |
+          Total item net amount minus completed refund amount.
+        data_tests:
+          - not_null
+
+      - name: completed_refund_rate
+        description: |
+          Completed refund amount divided by total item net amount.
+          Null when the order has no item net amount.
+
+      - name: has_return_request
+        description: True when the order has any return request.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: has_completed_return
+        description: True when the order has at least one completed return.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: has_pending_return
+        description: True when the order has at least one pending return.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: order_return_status
+        description: Consolidated return-state classification for the order.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - NO_RETURN
+                  - COMPLETED_ONLY
+                  - PENDING_ONLY
+                  - REJECTED_ONLY
+                  - MIXED
+
+      - name: completed_refund_exceeds_item_net_flag
+        description: |
+          Data-quality flag showing that completed refunds exceed the
+          combined net amount of the order's items.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false

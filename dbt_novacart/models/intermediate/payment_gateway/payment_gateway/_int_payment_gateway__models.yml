@@ -1,0 +1,129 @@
+version: 2
+
+models:
+  - name: int_payment_gateway__order_payment_summary
+    description: |
+      One row per current order containing consolidated payment-attempt
+      information.
+
+      The model preserves orders without payments and summarises all current
+      payment records associated with each order.
+
+      Key transformations:
+      - Aggregates payment attempts by order_id
+      - Selects the latest payment attempt deterministically
+      - Calculates captured totals and outstanding balances
+      - Classifies each order as NO_PAYMENT, UNPAID, PAID, UNDERPAID
+        or OVERPAID
+      - Identifies currency mismatches between orders and payments
+
+    columns:
+      - name: order_id
+        description: Business identifier of the order.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: order_total
+        description: Total amount expected for the order.
+        data_tests:
+          - not_null
+
+      - name: order_currency
+        description: Currency recorded on the order.
+        data_tests:
+          - not_null
+
+      - name: payment_attempt_count
+        description: Number of distinct payment IDs associated with the order.
+        data_tests:
+          - not_null
+
+      - name: first_payment_timestamp
+        description: Timestamp of the first payment attempt for the order.
+
+      - name: last_payment_activity_at
+        description: Most recent payment activity timestamp for the order.
+
+      - name: total_requested_amount_across_attempts
+        description: |
+          Sum of requested amounts across all payment attempts. This may be
+          greater than the order total when retries occurred.
+        data_tests:
+          - not_null
+
+      - name: total_captured_amount
+        description: Total amount captured across the order's payment records.
+        data_tests:
+          - not_null
+
+      - name: highest_payment_attempt_number
+        description: Highest payment-attempt sequence number for the order.
+        data_tests:
+          - not_null
+
+      - name: latest_payment_id
+        description: Identifier of the latest payment attempt.
+
+      - name: latest_payment_attempt_number
+        description: Sequence number of the latest payment attempt.
+
+      - name: latest_payment_method
+        description: Payment method used for the latest attempt.
+
+      - name: latest_payment_status
+        description: Status recorded for the latest payment attempt.
+
+      - name: latest_requested_amount
+        description: Amount requested during the latest payment attempt.
+
+      - name: latest_captured_amount
+        description: Amount captured during the latest payment attempt.
+
+      - name: payment_currency
+        description: Currency recorded for the latest payment attempt.
+
+      - name: latest_payment_timestamp
+        description: Timestamp when the latest payment attempt occurred.
+
+      - name: latest_gateway_reference
+        description: Gateway reference returned for the latest payment attempt.
+
+      - name: latest_failure_reason
+        description: Failure reason associated with the latest attempt, when applicable.
+
+      - name: outstanding_balance
+        description: Order total minus total captured amount.
+        data_tests:
+          - not_null
+
+      - name: payment_reconciliation_status
+        description: |
+          Reconciliation result based on the order total and captured amount.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - NO_PAYMENT
+                  - UNPAID
+                  - PAID
+                  - UNDERPAID
+                  - OVERPAID
+
+      - name: currency_mismatch_flag
+        description: |
+          True when the latest payment currency differs from the order
+          currency.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false

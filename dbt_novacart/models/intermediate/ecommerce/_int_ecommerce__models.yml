@@ -1,0 +1,83 @@
+
+version: 2
+models:
+
+  - name: int_ecommerce__returns_current
+    description: |
+      One row per return_id representing the current version of each
+      ecommerce return record.
+
+      Multiple return IDs may legitimately belong to the same order because
+      customers can return more than one item from an order.
+
+      The model ranks records by ingestion metadata and retains the most
+      recently loaded version of each return_id.
+
+    columns:
+      - name: return_source_record_id
+        description: |
+          Technical identifier of the source record selected as the current
+          version of the return.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: return_id
+        description: Business identifier of the return.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Order associated with the return.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: order_item_id
+        description: Order item associated with the return.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__order_items_current')
+                field: order_item_id
+
+      - name: return_status
+        description: Current processing status of the return.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - COMPLETED
+                  - PENDING
+                  - REJECTED                
+
+      - name: source_file
+        description: S3 source file containing the selected return record.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: Row number of the selected record inside the source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: Content identifier for the selected source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: Last-modified timestamp of the source file.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the selected record.
+        data_tests:
+          - not_null

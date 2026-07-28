@@ -1,0 +1,104 @@
+version: 2
+
+models:
+
+      - name: return_record_count
+        description: Total number of return records for the order item.
+        data_tests:
+          - not_null
+
+      - name: completed_return_record_count
+        description: Number of completed return records.
+        data_tests:
+          - not_null
+
+      - name: pending_return_record_count
+        description: Number of return records still pending.
+        data_tests:
+          - not_null
+
+      - name: rejected_return_record_count
+        description: Number of rejected return records.
+        data_tests:
+          - not_null
+
+      - name: requested_return_quantity
+        description: Quantity associated with all return requests regardless of status.
+        data_tests:
+          - not_null
+
+      - name: completed_return_quantity
+        description: Quantity from completed returns only.
+        data_tests:
+          - not_null
+
+      - name: pending_return_quantity
+        description: Quantity currently awaiting return completion.
+        data_tests:
+          - not_null
+
+      - name: rejected_return_quantity
+        description: Quantity associated with rejected return requests.
+        data_tests:
+          - not_null
+
+      - name: completed_refund_amount
+        description: Refund amount recognised from completed returns only.
+        data_tests:
+          - not_null
+
+      - name: retained_quantity
+        description: Ordered quantity minus completed return quantity.
+        data_tests:
+          - not_null
+
+      - name: completed_return_rate
+        description: Completed return quantity divided by ordered quantity.
+        data_tests:
+          - not_null
+
+      - name: has_return_request
+        description: True when the order item has any return record.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: has_completed_return
+        description: True when at least one return has been completed.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: has_pending_return
+        description: True when at least one return remains pending.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false
+
+      - name: completed_return_quantity_exceeds_ordered_flag
+        description: |
+          Data-quality flag showing that completed returned quantity exceeds
+          the quantity originally ordered.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+                quote: false

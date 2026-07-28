@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: int_crm__customers_current
+    description: |
+      One row per customer, representing the most recent available version
+      of each customer_id from stg_crm__customers.
+
+      Key transformations:
+      - Customer records are partitioned by customer_id
+      - Versions are ranked using source_updated_at, ingestion timestamps
+        and deterministic source metadata
+      - Only the top-ranked record for each customer_id is retained
+      - All staging customer attributes are preserved
+      - customer_id is unique in the final model
+
+    columns:
+      - name: customer_source_record_id
+        description: |
+          Technical SHA-256 identifier for the exact staging record selected
+          as the current version of the customer.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: |
+          Customer business identifier. Unique in this model because only
+          the latest version of each customer is retained.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_crm__customers_current')
+                field: customer_id
+
+      - name: source_updated_at
+        description: |
+          Timestamp when this customer version was last updated in the source
+          system. Used as the primary ranking field.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: |
+          S3 object containing the selected customer version.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: |
+          Original row number of the selected customer inside the source CSV.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: |
+          Content identifier of the source file containing the selected
+          customer record.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: |
+          Last-modified timestamp of the S3 object containing the selected
+          customer record.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: |
+          Timestamp when Snowflake loaded the selected customer record.
+        data_tests:
+          - not_null

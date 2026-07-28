@@ -1,0 +1,120 @@
+version: 2
+
+models:
+  - name: int_ecommerce__order_items_current
+    description: |
+      One row per order item, representing the most recently loaded version
+      of each order_item_id from stg_ecommerce__order_items.
+
+      Key transformations:
+      - Rows are partitioned by order_item_id
+      - Records are ranked by loaded_at, source-file metadata and deterministic
+        tie-breakers
+      - Only the top-ranked record for each order_item_id is retained
+      - order_item_id is unique in the final model
+
+    columns:
+      - name: order_item_source_record_id
+        description: |
+          Technical SHA-256 identifier for the exact staging record selected
+          as the current version of the order item.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_item_id
+        description: |
+          Business identifier for the order line. Unique in this model because
+          only the current version of each order item is retained.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: |
+          Business identifier of the order containing this line item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: product_id
+        description: |
+          Business identifier of the product included in the order line.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: quantity
+        description: Number of product units included in the order line.
+        data_tests:
+          - not_null
+
+      - name: unit_price
+        description: Price charged for one product unit.
+        data_tests:
+          - not_null
+
+      - name: gross_amount
+        description: |
+          Gross line amount before discount, calculated by the source as
+          quantity multiplied by unit price.
+        data_tests:
+          - not_null
+
+      - name: discount_rate
+        description: Decimal discount rate applied to the order line.
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: Monetary discount applied to the order line.
+        data_tests:
+          - not_null
+
+      - name: net_amount
+        description: Gross amount minus the line discount.
+        data_tests:
+          - not_null
+
+      - name: source_created_at
+        description: |
+          Timestamp when the order-item record was originally created in the
+          source system.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 object containing the selected order-item record.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: |
+          Original row number of the selected record inside the source CSV.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: |
+          Content identifier of the source file containing the selected record.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: |
+          Last-modified timestamp of the source S3 object.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: |
+          Timestamp when Snowflake loaded the selected order-item record.
+          This is the primary field used to identify the latest version.
+        data_tests:
+          - not_null

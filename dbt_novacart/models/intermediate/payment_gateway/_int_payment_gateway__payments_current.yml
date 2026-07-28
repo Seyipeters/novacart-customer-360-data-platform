@@ -1,0 +1,119 @@
+version: 2
+
+models:
+  - name: int_payment_gateway__payments_current
+    description: |
+      One row per payment_id, representing the most recently received
+      version of each payment record from
+      stg_payment_gateway__payments.
+
+      Multiple payment IDs may legitimately belong to the same order because
+      an order can experience failed attempts, retries, successful captures
+      or other payment events.
+
+      Key transformations:
+      - Payment records are partitioned by payment_id
+      - Versions are ranked using source arrival and ingestion metadata
+      - Only the top-ranked record for each payment_id is retained
+      - payment_id is unique in the final model
+
+    columns:
+      - name: payment_source_record_id
+        description: |
+          Technical identifier for the exact staging record selected as the
+          current version of the payment.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: payment_id
+        description: |
+          Business identifier for the payment attempt. Unique in this model
+          because only the latest version of each payment is retained.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: Order associated with the payment attempt.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: payment_attempt_number
+        description: Sequential payment-attempt number within the order.
+        data_tests:
+          - not_null
+
+      - name: payment_method
+        description: Payment method used for the attempt.
+        data_tests:
+          - not_null
+
+      - name: payment_status
+        description: Current status of the payment attempt.
+        data_tests:
+          - not_null
+
+      - name: payment_amount
+        description: Amount requested from the payment gateway.
+        data_tests:
+          - not_null
+
+      - name: captured_amount
+        description: Amount successfully captured by the payment gateway.
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: Currency associated with the payment amounts.
+        data_tests:
+          - not_null
+
+      - name: payment_timestamp
+        description: Timestamp when the payment attempt occurred.
+        data_tests:
+          - not_null
+
+      - name: gateway_reference
+        description: Reference returned by the external payment gateway.
+
+      - name: failure_reason
+        description: |
+          Failure explanation supplied by the gateway. Expected to be null
+          for payments that did not fail.
+
+      - name: source_record_arrived_at
+        description: |
+          Timestamp when this version of the payment record arrived from the
+          source system. Used as the primary current-version ranking field.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 object containing the selected payment record.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: Original row number inside the selected source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: Content identifier of the selected source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: Last-modified timestamp of the selected S3 object.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the selected record.
+        data_tests:
+          - not_null

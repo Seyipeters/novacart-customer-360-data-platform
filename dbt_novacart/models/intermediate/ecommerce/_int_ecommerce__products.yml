@@ -1,0 +1,99 @@
+version: 2
+
+models:
+
+  - name: int_ecommerce__products_current
+    description: |
+      One row per product, representing the most recent available version
+      of every product_id from stg_ecommerce__products.
+
+      Key transformations:
+      - Source records are partitioned by product_id
+      - Records are ranked using source_updated_at, ingestion timestamps
+        and deterministic source metadata
+      - Only the top-ranked record for each product_id is retained
+      - product_id is unique in the final model
+
+    columns:
+      - name: product_source_record_id
+        description: |
+          Technical SHA-256 identifier for the exact staging record selected
+          as the current product version.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: product_id
+        description: |
+          Business identifier for the product. Unique in this model because
+          only the current version of each product is retained.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: sku
+        description: Stock-keeping unit assigned to the product.
+        data_tests:
+          - not_null
+
+      - name: product_name
+        description: Current product display name.
+        data_tests:
+          - not_null
+
+      - name: category
+        description: Current high-level product category.
+        data_tests:
+          - not_null
+
+      - name: subcategory
+        description: Current product subcategory.
+        data_tests:
+          - not_null
+
+      - name: brand
+        description: Current product brand.
+        data_tests:
+          - not_null
+
+      - name: unit_cost
+        description: Current acquisition or production cost per unit.
+        data_tests:
+          - not_null
+
+      - name: list_price
+        description: Current standard selling price per unit.
+        data_tests:
+          - not_null
+
+      - name: source_updated_at
+        description: |
+          Timestamp when this product version was updated in the source
+          system. Used as the primary ranking field.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 object containing the selected product record.
+        data_tests:
+          - not_null
+
+      - name: source_file_row_number
+        description: Original row number inside the selected source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: Content identifier of the selected source file.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: Last-modified timestamp of the selected S3 object.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the selected record.
+        data_tests:
+          - not_null
