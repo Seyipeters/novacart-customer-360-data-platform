@@ -1,0 +1,112 @@
+version: 2
+
+models:
+  - name: stg_ecommerce__web_events
+    description: >
+      Cleaned and standardized web event records. The model preserves one row per physical source record and retains ingestion metadata.
+
+    columns:
+      - name: web_event_source_record_id
+        description: >
+          Technical source-record identifier generated from the file content key and file row number.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: event_id
+        description: Business identifier for the web event. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: event_type
+        description: Type of web event (e.g., page_view, add_to_cart, purchase). Standardized to lowercase.
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        description: Business identifier for the customer associated with the web event. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_crm__customers')
+                field: customer_id
+
+      - name: product_id
+        description: Business identifier for the product associated with the web event. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: campaign_id
+        description: Business identifier for the marketing campaign associated with the web event. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_marketing_platform__campaigns')
+                field: campaign_id
+
+      - name: anonymous_id
+        description: Unique identifier for anonymous users who have not logged in or registered. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - not_null
+
+      - name: order_id
+        description: Business identifier for the order associated with the web event, if applicable. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__orders')
+                field: order_id
+
+      - name: event_timestamp
+        description: Timestamp when the web event occurred.
+        data_tests:
+          - not_null
+
+      - name: page_url
+        description: URL of the page where the web event occurred. Trimmed and normalized for consistency across the data platform.
+        data_tests:
+          - not_null
+
+      - name: device_type
+        description: Type of device used for the web event (e.g., desktop, mobile, tablet). Standardized to lowercase.
+        data_tests:
+          - not_null
+
+      - name: browser
+        description: Name of the browser used for the web event (e.g., Chrome, Firefox, Safari). Standardized to lowercase.
+        data_tests:
+          - not_null
+
+      - name: traffic_source
+        description: Source of the traffic that led to the web event (e.g., organic, paid, referral). Standardized to lowercase.
+        data_tests:
+          - not_null
+
+      - name: source_record_arrived_at
+        description: Timestamp when the source record arrived in the data platform.
+        data_tests:
+          - not_null
+
+      - name: source_file
+        description: S3 file from which the web event record was loaded.
+        data_tests:
+          - not_null
+
+      - name: source_file_content_key
+        description: Unique content key for the source file from which the web event record was loaded.
+        data_tests:
+          - not_null
+
+      - name: source_file_last_modified
+        description: Timestamp when the source file was last modified.
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: Timestamp when Snowflake loaded the web event record.
+        data_tests:
+          - not_null

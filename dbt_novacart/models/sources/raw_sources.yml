@@ -294,6 +294,84 @@ sources:
         identifier: RAW_CAMPAIGNS
         description: Marketing campaign master data.
 
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: campaign_id
+            description: Business identifier for the marketing campaign.
+            data_tests:
+              - not_null
+
+          - name: campaign_name
+            description: Display name of the marketing campaign.
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the campaign record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+
       - name: web_events
         identifier: RAW_WEB_EVENTS
         description: Customer and anonymous website activity events.
+
+        config: 
+          loaded_at_field: loaded_at
+
+          freshness:
+            warn_after:
+              count: 24
+              period: hour
+
+            error_after:
+              count: 72
+              period: hour
+
+        columns:
+          - name: event_id
+            description: Business identifier for the web event.
+            data_tests:
+              - not_null
+
+          - name: session_id
+            description: Unique identifier for the user session during which the web event occurred.
+            data_tests:
+              - not_null
+
+          - name: event_timestamp
+            description: Timestamp when the web event occurred.
+            data_tests:
+              - not_null
+
+          - name: event_type
+            description: Type of web event (e.g., page_view, add_to_cart, purchase).
+            data_tests:
+              - not_null
+
+          - name: source_file
+            description: S3 file from which the web event record was loaded.
+            data_tests:
+              - not_null
+
+          - name: loaded_at
+            description: Snowflake ingestion timestamp.
+            data_tests:
+              - not_null
+ 
+          
