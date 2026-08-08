@@ -2,8 +2,6 @@
 
 > A production-style end-to-end data engineering platform that unifies e-commerce, customer, payment, return, inventory, marketing, and web analytics data into a tested Snowflake dimensional warehouse, with planned production orchestration, incremental processing, historical modelling, BI, and AI-driven analytics.
 
-![NovaCart Final Architecture](assets/novacart-final-architecture.png)
-
 ---
 
 ## Project Overview
