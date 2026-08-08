@@ -1,0 +1,139 @@
+version: 2
+
+models:
+- name: int_inventory_system__product_inventory_summary
+  description: "Product-level inventory summary aggregated across all warehouses. One row represents one product."
+
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: "warehouse_count > 0"
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: >
+          stockout_warehouse_count >= 0
+          and stockout_warehouse_count <= warehouse_count
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: >
+          reorder_warehouse_count >= 0
+          and reorder_warehouse_count <= warehouse_count
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: >
+          total_opening_stock >= 0
+          and total_received_quantity >= 0
+          and total_sold_quantity >= 0
+          and total_damaged_quantity >= 0
+          and total_closing_stock >= 0
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: >
+          total_inventory_value >= 0
+          and weighted_average_unit_cost >= 0
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: "has_stockout = (stockout_warehouse_count > 0)"
+
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: "needs_reorder = (reorder_warehouse_count > 0)"
+
+  columns:
+  - name: product_id
+    description: "Unique identifier for the product."
+    data_tests:
+    - not_null
+    - unique
+    - relationships:
+        arguments:
+          to: ref('int_ecommerce__products_current')
+          field: product_id
+
+  - name: latest_inventory_date
+    description: "Most recent inventory date available for the product."
+    data_tests:
+    - not_null
+
+  - name: warehouse_count
+    description: "Number of warehouses holding inventory records for the product."
+    data_tests:
+    - not_null
+
+  - name: total_opening_stock
+    description: "Opening stock summed across warehouses."
+    data_tests:
+    - not_null
+
+  - name: total_received_quantity
+    description: "Quantity received summed across warehouses."
+    data_tests:
+    - not_null
+
+  - name: total_sold_quantity
+    description: "Quantity sold summed across warehouses."
+    data_tests:
+    - not_null
+
+  - name: total_damaged_quantity
+    description: "Damaged quantity summed across warehouses."
+    data_tests:
+    - not_null
+
+  - name: total_closing_stock
+    description: "Closing stock summed across warehouses."
+    data_tests:
+    - not_null
+
+  - name: total_inventory_value
+    description: "Total monetary value of the product inventory."
+    data_tests:
+    - not_null
+
+  - name: weighted_average_unit_cost
+    description: "Average unit cost weighted by closing-stock quantity."
+    data_tests:
+    - not_null
+
+  - name: stockout_warehouse_count
+    description: "Number of warehouses where the product is out of stock."
+    data_tests:
+    - not_null
+
+  - name: reorder_warehouse_count
+    description: "Number of warehouses where the product requires reordering."
+    data_tests:
+    - not_null
+
+  - name: has_stockout
+    description: "True when the product is out of stock in at least one warehouse."
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [true, false]
+          quote: false
+
+  - name: needs_reorder
+    description: "True when the product requires reordering in at least one warehouse."
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values: [true, false]
+          quote: false
+
+  - name: latest_source_updated_at
+    description: "Latest source-system update timestamp included in the summary."
+    data_tests:
+    - not_null
+
+  - name: latest_loaded_at
+    description: "Latest warehouse loading timestamp included in the summary."
+    data_tests:
+    - not_null

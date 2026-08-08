@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: fct_inventory_snapshot
+    description: >
+      Latest inventory snapshot fact containing one row per product,
+      with stock quantities, inventory value and reorder indicators.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "total_closing_stock >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "total_inventory_value >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "stockout_warehouse_count <= warehouse_count"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "reorder_warehouse_count <= warehouse_count"
+
+    columns:
+      - name: product_key
+        description: "Warehouse key connecting inventory to dim_products."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_key
+
+      - name: product_id
+        description: "Source-system product identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: latest_inventory_date
+        description: "Latest inventory date represented for the product."
+        data_tests:
+          - not_null
+
+      - name: warehouse_count
+        description: "Number of warehouses represented in the product summary."
+        data_tests:
+          - not_null
+
+      - name: total_closing_stock
+        description: "Latest total closing stock across warehouses."
+        data_tests:
+          - not_null
+
+      - name: total_inventory_value
+        description: "Total value of current inventory."
+        data_tests:
+          - not_null
+
+      - name: has_stockout
+        description: "True when at least one warehouse has a stockout."
+        data_tests:
+          - not_null
+
+      - name: needs_reorder
+        description: "True when at least one warehouse requires replenishment."
+        data_tests:
+          - not_null

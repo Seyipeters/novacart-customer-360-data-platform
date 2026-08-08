@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_ecommerce__web_events
+  - name: stg_web_analytics__web_events
     description: >
       Cleaned and standardized web event records. The model preserves one row per physical source record and retains ingestion metadata.
 
@@ -49,9 +49,11 @@ models:
                 field: campaign_id
 
       - name: anonymous_id
-        description: Unique identifier for anonymous users who have not logged in or registered. Trimmed and normalized for consistency across the data platform.
-        data_tests:
-          - not_null
+        description: |
+          Unique identifier for anonymous users who have not logged in or
+          registered. Trimmed and normalized for consistency across the data
+          platform. Null for events tied to an identified user (customer_id
+          is populated instead).
 
       - name: order_id
         description: Business identifier for the order associated with the web event, if applicable. Trimmed and normalized for consistency across the data platform.

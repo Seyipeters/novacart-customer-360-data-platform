@@ -1,0 +1,130 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Current-state customer dimension containing cleaned CRM attributes.
+      One row represents one customer.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              registration_month =
+              date_trunc('month', registration_date)::date
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              (
+                is_active = true
+                and customer_status = 'ACTIVE'
+              )
+              or
+              (
+                is_active = false
+                and customer_status = 'INACTIVE'
+              )
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              email = lower(trim(email))
+
+    columns:
+      - name: customer_key
+        description: "Warehouse surrogate key generated from customer_id."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        description: "Business identifier of the customer in the CRM system."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_crm__customers_current')
+                field: customer_id
+
+      - name: customer_source_record_id
+        description: "Unique identifier of the selected source CRM record."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: first_name
+        description: "Customer's cleaned first name."
+        data_tests:
+          - not_null
+
+      - name: last_name
+        description: "Customer's cleaned last name."
+        data_tests:
+          - not_null
+
+      - name: full_name
+        description: "Customer's cleaned full name."
+        data_tests:
+          - not_null
+
+      - name: email
+        description: "Customer email standardised to lowercase."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: email_domain
+        description: "Domain extracted from the customer email address."
+        data_tests:
+          - not_null
+
+      - name: registration_date
+        description: "Date when the customer registered."
+        data_tests:
+          - not_null
+
+      - name: registration_month
+        description: "First calendar day of the customer's registration month."
+        data_tests:
+          - not_null
+
+      - name: loyalty_status
+        description: "Current loyalty-program status of the customer."
+        data_tests:
+          - not_null
+
+      - name: acquisition_channel
+        description: "Channel through which the customer was acquired."
+        data_tests:
+          - not_null
+
+      - name: is_active
+        description: "Boolean indicator showing whether the customer is active."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+
+      - name: customer_status
+        description: "Readable active or inactive customer classification."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - ACTIVE
+                  - INACTIVE
+
+      - name: source_updated_at
+        description: "Timestamp of the source CRM update represented by the row."
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the selected customer record entered the warehouse."
+        data_tests:
+          - not_null

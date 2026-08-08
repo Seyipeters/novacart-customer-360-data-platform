@@ -1,0 +1,142 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: >
+      Order-level fact table combining current orders with customer,
+      payment and return information. One row represents one order.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "order_date = order_timestamp::date"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              item_count >= 0
+              and total_quantity >= 0
+              and payment_attempt_count >= 0
+              and return_record_count >= 0
+              and requested_return_quantity >= 0
+              and completed_return_quantity >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              subtotal_amount >= 0
+              and discount_amount >= 0
+              and shipping_amount >= 0
+              and order_total >= 0
+              and total_captured_amount >= 0
+              and completed_refund_amount >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              completed_return_quantity
+              <= requested_return_quantity
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              net_captured_revenue_after_refunds
+              =
+              total_captured_amount
+              -
+              completed_refund_amount
+
+    columns:
+      - name: order_id
+        description: "Unique business identifier for the order."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: customer_key
+        description: "Warehouse key connecting the order to dim_customers."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_key
+
+      - name: customer_id
+        description: "Source-system customer identifier."
+        data_tests:
+          - not_null
+
+      - name: order_timestamp
+        description: "Timestamp when the order was placed."
+        data_tests:
+          - not_null
+
+      - name: order_date
+        description: "Calendar date when the order was placed."
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: "Current business status of the order."
+        data_tests:
+          - not_null
+
+      - name: order_currency
+        description: "Currency used by the order."
+        data_tests:
+          - not_null
+
+      - name: order_total
+        description: "Total monetary value of the order."
+        data_tests:
+          - not_null
+
+      - name: payment_attempt_count
+        description: "Number of payment attempts recorded for the order."
+        data_tests:
+          - not_null
+
+      - name: total_captured_amount
+        description: "Total payment amount successfully captured."
+        data_tests:
+          - not_null
+
+      - name: payment_reconciliation_status
+        description: "Comparison between the order total and captured payment."
+        data_tests:
+          - not_null
+
+      - name: return_record_count
+        description: "Number of return records associated with the order."
+        data_tests:
+          - not_null
+
+      - name: completed_refund_amount
+        description: "Completed refund amount associated with the order."
+        data_tests:
+          - not_null
+
+      - name: net_captured_revenue_after_refunds
+        description: "Captured payment amount minus completed refunds."
+        data_tests:
+          - not_null
+
+      - name: order_return_status
+        description: "Summary return status for the order."
+        data_tests:
+          - not_null
+
+      - name: source_updated_at
+        description: "Latest source-system update represented by the order."
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the order entered the warehouse."
+        data_tests:
+          - not_null

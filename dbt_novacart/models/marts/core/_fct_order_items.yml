@@ -1,0 +1,156 @@
+version: 2
+
+models:
+  - name: fct_order_items
+    description: >
+      Order-line fact table containing one row per order item.
+      It connects each sold product to its order, customer and product
+      dimensions and contains quantity, price, discount and sales measures.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "quantity > 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "unit_price >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "gross_amount >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              discount_rate >= 0
+              and discount_rate <= 1
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              discount_amount >= 0
+              and discount_amount <= gross_amount
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                gross_amount - (quantity * unit_price)
+              ) <= 0.01
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                discount_amount - (gross_amount * discount_rate)
+              ) <= 0.01
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                net_amount - (gross_amount - discount_amount)
+              ) <= 0.01
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              has_discount =
+              case
+                when discount_amount > 0 then true
+                else false
+              end
+
+    columns:
+      - name: order_item_id
+        description: "Unique identifier for an individual product line within an order."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Identifier of the order containing the product line."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+
+      - name: product_key
+        description: "Warehouse key connecting the order line to dim_products."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_key
+
+      - name: product_id
+        description: "Source-system identifier for the sold product."
+        data_tests:
+          - not_null
+
+      - name: customer_key
+        description: "Warehouse key connecting the order line to dim_customers."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_key
+
+      - name: customer_id
+        description: >
+          Source customer identifier inherited from the order containing
+          the order line.
+        data_tests:
+          - not_null
+
+      - name: quantity
+        description: "Number of product units recorded on the order line."
+        data_tests:
+          - not_null
+
+      - name: unit_price
+        description: "Selling price per product unit at the time of the order."
+        data_tests:
+          - not_null
+
+      - name: gross_amount
+        description: "Quantity multiplied by unit price before discount."
+        data_tests:
+          - not_null
+
+      - name: discount_rate
+        description: >
+          Discount expressed as a decimal. For example, 0.10 represents
+          a 10 percent discount.
+        data_tests:
+          - not_null
+
+      - name: discount_amount
+        description: "Monetary discount applied to the order line."
+        data_tests:
+          - not_null
+
+      - name: net_amount
+        description: "Gross amount minus discount amount."
+        data_tests:
+          - not_null
+
+      - name: has_discount
+        description: "True when the order line has a positive discount amount."
+        data_tests:
+          - not_null
+
+      - name: source_created_at
+        description: "Timestamp when the order item was created in the source system."
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the order-item record entered the warehouse."
+        data_tests:
+          - not_null

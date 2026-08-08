@@ -1,0 +1,163 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: >
+      Conformed calendar dimension containing one row per calendar date.
+      It supports consistent daily, weekly, monthly, quarterly and yearly
+      analysis across NovaCart fact tables.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              date_key = to_number(to_char(date_day, 'YYYYMMDD'))
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              day_of_week_number between 1 and 7
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              month_number between 1 and 12
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              quarter_number between 1 and 4
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              is_weekend =
+              case
+                when day_of_week_number in (6, 7) then true
+                else false
+              end
+
+    columns:
+      - name: date_key
+        description: >
+          Integer calendar key in YYYYMMDD format.
+          For example, 20250717 represents 17 July 2025.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: date_day
+        description: "Complete calendar date."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: day_of_month
+        description: "Day number within the month."
+        data_tests:
+          - not_null
+
+      - name: day_of_week_number
+        description: >
+          ISO day number where Monday is 1 and Sunday is 7.
+        data_tests:
+          - not_null
+
+      - name: day_name
+        description: "Calendar day name such as Monday or Tuesday."
+        data_tests:
+          - not_null
+
+      - name: day_of_year
+        description: "Sequential day number within the year."
+        data_tests:
+          - not_null
+
+      - name: iso_week_number
+        description: "ISO calendar week number."
+        data_tests:
+          - not_null
+
+      - name: iso_week_year
+        description: "ISO week-based year."
+        data_tests:
+          - not_null
+
+      - name: month_number
+        description: "Calendar month number from 1 to 12."
+        data_tests:
+          - not_null
+
+      - name: month_name
+        description: "Calendar month name."
+        data_tests:
+          - not_null
+
+      - name: year_month_number
+        description: "Sortable year and month value in YYYYMM format."
+        data_tests:
+          - not_null
+
+      - name: year_month
+        description: "Display-friendly year and month in YYYY-MM format."
+        data_tests:
+          - not_null
+
+      - name: quarter_number
+        description: "Calendar quarter number from 1 to 4."
+        data_tests:
+          - not_null
+
+      - name: quarter_name
+        description: "Calendar quarter label such as Q1."
+        data_tests:
+          - not_null
+
+      - name: year_number
+        description: "Four-digit calendar year."
+        data_tests:
+          - not_null
+
+      - name: week_start_date
+        description: "Starting date of the calendar week."
+        data_tests:
+          - not_null
+
+      - name: month_start_date
+        description: "First date of the calendar month."
+        data_tests:
+          - not_null
+
+      - name: month_end_date
+        description: "Last date of the calendar month."
+        data_tests:
+          - not_null
+
+      - name: quarter_start_date
+        description: "First date of the calendar quarter."
+        data_tests:
+          - not_null
+
+      - name: quarter_end_date
+        description: "Last date of the calendar quarter."
+        data_tests:
+          - not_null
+
+      - name: year_start_date
+        description: "First date of the calendar year."
+        data_tests:
+          - not_null
+
+      - name: year_end_date
+        description: "Last date of the calendar year."
+        data_tests:
+          - not_null
+
+      - name: is_weekend
+        description: "True when the date is Saturday or Sunday."
+        data_tests:
+          - not_null
+
+
+
+          

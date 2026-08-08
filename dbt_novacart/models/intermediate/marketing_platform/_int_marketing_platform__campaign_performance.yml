@@ -1,0 +1,242 @@
+version: 2
+
+models:
+  - name: int_marketing_platform__campaign_performance
+    description: >
+      Campaign-level performance model combining website engagement,
+      last-touch order attribution, captured payments and completed refunds.
+      One row represents one marketing campaign.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              attributed_order_count >= 0
+              and converted_customer_count >= 0
+              and captured_payment_order_count >= 0
+              and refunded_order_count >= 0
+              and currency_mismatch_order_count >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              converted_customer_count <= attributed_order_count
+              and captured_payment_order_count <= attributed_order_count
+              and refunded_order_count <= attributed_order_count
+              and currency_mismatch_order_count <= attributed_order_count
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              attributed_order_count <= total_web_events
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              total_captured_revenue >= 0
+              and total_completed_refund_amount >= 0
+              and net_revenue_after_refunds >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              total_completed_refund_amount <= total_captured_revenue
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              customer_conversion_rate_pct is null
+              or (
+                customer_conversion_rate_pct >= 0
+                and customer_conversion_rate_pct <= 100
+              )
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              (
+                attributed_order_count = 0
+                and cost_per_attributed_order is null
+                and average_net_order_value is null
+              )
+              or
+              (
+                attributed_order_count > 0
+                and cost_per_attributed_order >= 0
+                and average_net_order_value >= 0
+              )
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              return_on_ad_spend is null
+              or return_on_ad_spend >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              revenue_refund_rate_pct is null
+              or (
+                revenue_refund_rate_pct >= 0
+                and revenue_refund_rate_pct <= 100
+              )
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              (
+                attributed_order_count = 0
+                and first_attributed_order_event_at is null
+                and latest_attributed_order_event_at is null
+              )
+              or
+              (
+                attributed_order_count > 0
+                and first_attributed_order_event_at is not null
+                and latest_attributed_order_event_at is not null
+                and first_attributed_order_event_at
+                    <= latest_attributed_order_event_at
+              )
+
+    columns:
+      - name: campaign_id
+        description: "Unique identifier for the marketing campaign."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_marketing_platform__campaigns')
+                field: campaign_id
+
+      - name: campaign_name
+        description: "Business name of the campaign."
+        data_tests:
+          - not_null
+
+      - name: campaign_channel
+        description: "Marketing channel used by the campaign."
+        data_tests:
+          - not_null
+
+      - name: campaign_status
+        description: "Current campaign status."
+        data_tests:
+          - not_null
+
+      - name: start_date
+        description: "Campaign start date."
+        data_tests:
+          - not_null
+
+      - name: end_date
+        description: "Campaign end date."
+        data_tests:
+          - not_null
+
+      - name: campaign_duration_days
+        description: "Number of calendar days covered by the campaign."
+        data_tests:
+          - not_null
+
+      - name: budget_amount
+        description: "Budget assigned to the campaign."
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: "Currency used for campaign financial values."
+        data_tests:
+          - not_null
+
+      - name: total_web_events
+        description: "Total web events associated with the campaign."
+        data_tests:
+          - not_null
+
+      - name: unique_customers_engaged
+        description: "Distinct customers who interacted with the campaign."
+        data_tests:
+          - not_null
+
+      - name: attributed_order_count
+        description: >
+          Number of orders attributed to the campaign using the most recent
+          linked campaign event for each order.
+        data_tests:
+          - not_null
+
+      - name: converted_customer_count
+        description: "Distinct customers with an order attributed to the campaign."
+        data_tests:
+          - not_null
+
+      - name: captured_payment_order_count
+        description: "Attributed orders with a captured payment amount above zero."
+        data_tests:
+          - not_null
+
+      - name: refunded_order_count
+        description: "Attributed orders with a completed refund."
+        data_tests:
+          - not_null
+
+      - name: currency_mismatch_order_count
+        description: "Attributed orders with a payment and order currency mismatch."
+        data_tests:
+          - not_null
+
+      - name: total_captured_revenue
+        description: "Captured payment amount attributed to the campaign."
+        data_tests:
+          - not_null
+
+      - name: total_completed_refund_amount
+        description: "Completed refunds associated with attributed orders."
+        data_tests:
+          - not_null
+
+      - name: net_revenue_after_refunds
+        description: "Captured revenue minus completed refunds."
+        data_tests:
+          - not_null
+
+      - name: customer_conversion_rate_pct
+        description: >
+          Percentage of engaged identifiable customers who generated an
+          attributed order.
+
+      - name: cost_per_attributed_order
+        description: >
+          Campaign budget divided by attributed orders. Null when no orders
+          were attributed.
+
+      - name: average_net_order_value
+        description: >
+          Net campaign revenue divided by attributed orders. Null when no
+          orders were attributed.
+
+      - name: return_on_ad_spend
+        description: >
+          Net campaign revenue divided by campaign budget. Null when campaign
+          budget is zero.
+
+      - name: revenue_refund_rate_pct
+        description: >
+          Completed refunds as a percentage of captured campaign revenue.
+
+      - name: first_attributed_order_event_at
+        description: "Earliest campaign event used for order attribution."
+
+      - name: latest_attributed_order_event_at
+        description: "Latest campaign event used for order attribution."
+
+      - name: campaign_source_updated_at
+        description: "Timestamp of the campaign's latest source update."
+        data_tests:
+          - not_null
+
+      - name: latest_loaded_at
+        description: "Latest warehouse loading timestamp represented by the campaign."
+        data_tests:
+          - not_null

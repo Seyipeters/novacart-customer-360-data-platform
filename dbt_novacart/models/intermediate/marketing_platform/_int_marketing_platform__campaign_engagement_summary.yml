@@ -1,0 +1,172 @@
+version: 2
+
+models:
+  - name: int_marketing_platform__campaign_engagement_summary
+    description: >
+      Campaign-level engagement summary combining marketing campaign
+      information with attributed website activity. One row represents
+      one marketing campaign.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "campaign_duration_days > 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "budget_amount >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              total_web_events >= 0
+              and unique_customers_engaged >= 0
+              and attributed_order_count >= 0
+              and unique_products_engaged >= 0
+              and unique_pages_visited >= 0
+              and traffic_source_count >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              unique_customers_engaged <= total_web_events
+              and attributed_order_count <= total_web_events
+              and unique_products_engaged <= total_web_events
+              and unique_pages_visited <= total_web_events
+              and traffic_source_count <= total_web_events
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              total_web_events = 0
+              or first_event_at <= latest_event_at
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              (
+                attributed_order_count = 0
+                and budget_per_attributed_order is null
+              )
+              or
+              (
+                attributed_order_count > 0
+                and budget_per_attributed_order >= 0
+              )
+
+    columns:
+      - name: campaign_id
+        description: "Unique identifier for the marketing campaign."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_marketing_platform__campaigns')
+                field: campaign_id
+
+      - name: campaign_name
+        description: "Business name of the marketing campaign."
+        data_tests:
+          - not_null
+
+      - name: campaign_channel
+        description: "Channel through which the campaign is delivered."
+        data_tests:
+          - not_null
+
+      - name: campaign_objective
+        description: "Primary business objective of the campaign."
+        data_tests:
+          - not_null
+
+      - name: campaign_status
+        description: "Current status of the campaign."
+        data_tests:
+          - not_null
+
+      - name: target_segment
+        description: "Customer segment targeted by the campaign."
+        data_tests:
+          - not_null
+
+      - name: start_date
+        description: "Campaign start date."
+        data_tests:
+          - not_null
+
+      - name: end_date
+        description: "Campaign end date."
+        data_tests:
+          - not_null
+
+      - name: campaign_duration_days
+        description: "Number of calendar days from campaign start to end."
+        data_tests:
+          - not_null
+
+      - name: budget_amount
+        description: "Budget assigned to the campaign."
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: "Currency used for the campaign budget."
+        data_tests:
+          - not_null
+
+      - name: total_web_events
+        description: "Total number of website events attributed to the campaign."
+        data_tests:
+          - not_null
+
+      - name: unique_customers_engaged
+        description: "Number of distinct customers who interacted with the campaign."
+        data_tests:
+          - not_null
+
+      - name: attributed_order_count
+        description: "Number of distinct orders associated with the campaign."
+        data_tests:
+          - not_null
+
+      - name: unique_products_engaged
+        description: "Number of distinct products involved in attributed web activity."
+        data_tests:
+          - not_null
+
+      - name: unique_pages_visited
+        description: "Number of distinct website pages visited through the campaign."
+        data_tests:
+          - not_null
+
+      - name: traffic_source_count
+        description: "Number of distinct traffic sources associated with the campaign."
+        data_tests:
+          - not_null
+
+      - name: first_event_at
+        description: "Timestamp of the earliest web event attributed to the campaign."
+
+      - name: latest_event_at
+        description: "Timestamp of the latest web event attributed to the campaign."
+
+      - name: budget_per_attributed_order
+        description: >
+          Campaign budget divided by attributed orders. Null when the
+          campaign has no attributed orders.
+
+      - name: campaign_source_updated_at
+        description: "Timestamp when the campaign record was last updated at the source."
+        data_tests:
+          - not_null
+
+      - name: latest_web_event_source_arrived_at
+        description: >
+          Latest source-arrival timestamp among web events attributed
+          to the campaign.
+
+      - name: latest_loaded_at
+        description: "Latest warehouse loading timestamp represented in the summary."
+        data_tests:
+          - not_null

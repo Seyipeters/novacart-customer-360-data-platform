@@ -2,6 +2,57 @@ version: 2
 
 models:
 
+  - name: int_ecommerce__order_item_return_summary
+    description: |
+      One row per current order item containing consolidated return and
+      completed-refund information.
+
+      The model starts from all current order items, ensuring that order
+      items without return requests remain represented.
+
+      Pending and rejected returns are reported separately and do not affect
+      retained quantity or the completed return rate. Only completed returns
+      reduce the calculated retained quantity.
+
+    columns:
+      - name: order_item_id
+        description: Business identifier of the order item.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__order_items_current')
+                field: order_item_id
+
+      - name: order_id
+        description: Business identifier of the order containing this item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__orders_current')
+                field: order_id
+
+      - name: product_id
+        description: Business identifier of the product on this order item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ecommerce__products')
+                field: product_id
+
+      - name: ordered_quantity
+        description: Quantity originally ordered for this order item.
+        data_tests:
+          - not_null
+
+      - name: order_item_net_amount
+        description: Net amount of the order item after discounts.
+        data_tests:
+          - not_null
+
       - name: return_record_count
         description: Total number of return records for the order item.
         data_tests:

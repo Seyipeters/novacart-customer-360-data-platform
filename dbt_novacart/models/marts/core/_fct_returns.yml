@@ -1,0 +1,146 @@
+version: 2
+
+models:
+  - name: fct_returns
+    description: >
+      Return transaction fact containing one row per return record.
+      Each return is associated with an order item, customer and product,
+      and records return quantity, reason, status and refund amount.
+
+    data_tests:
+
+      # Quantities and refund amounts must be valid
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              return_quantity > 0
+              and refund_amount >= 0
+
+      # Completed returns must have a refund
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              return_status != 'COMPLETED'
+              or refund_amount > 0
+
+      # Pending and rejected returns must not yet have a refund
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              return_status not in ('PENDING', 'REJECTED')
+              or refund_amount = 0
+
+    columns:
+
+      - name: return_id
+        description: "Unique identifier for the return transaction."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Order containing the returned item."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+
+      - name: order_item_id
+        description: "Specific order line being returned."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_order_items')
+                field: order_item_id
+
+      - name: customer_key
+        description: "Warehouse key connecting the return to dim_customers."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_key
+
+      - name: customer_id
+        description: "Source-system customer identifier."
+        data_tests:
+          - not_null
+
+      - name: product_key
+        description: "Warehouse key connecting the return to dim_products."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_key
+
+      - name: product_id
+        description: "Source-system identifier for the returned product."
+        data_tests:
+          - not_null
+
+      - name: return_date
+        description: "Calendar date when the return was recorded."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+
+      - name: return_quantity
+        description: "Number of product units included in the return."
+        data_tests:
+          - not_null
+
+      - name: return_reason
+        description: "Business reason supplied for the return."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - DEFECTIVE_PRODUCT
+                  - DAMAGED_ITEM
+                  - WRONG_ITEM
+                  - NOT_AS_DESCRIBED
+                  - SIZE_OR_FIT
+                  - CHANGED_MIND
+
+      - name: return_status
+        description: "Current processing status of the return."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - COMPLETED
+                  - PENDING
+                  - REJECTED
+
+      - name: refund_amount
+        description: >
+          Refund amount issued for the return. Completed returns have
+          a positive refund while pending and rejected returns have zero.
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: "Currency associated with the refund."
+        data_tests:
+          - not_null
+
+      - name: source_created_at
+        description: "Timestamp when the return was created in the source system."
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the return record entered the warehouse."
+        data_tests:
+          - not_null

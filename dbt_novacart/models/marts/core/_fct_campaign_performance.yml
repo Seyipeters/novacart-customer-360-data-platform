@@ -1,0 +1,131 @@
+version: 2
+
+models:
+  - name: fct_campaign_performance
+    description: >
+      Campaign-level fact table containing one row per marketing campaign
+      with engagement, conversion, revenue, refund and advertising
+      performance measures.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "budget_amount >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              attributed_order_count >= 0
+              and converted_customer_count >= 0
+              and captured_payment_order_count >= 0
+              and refunded_order_count >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              total_captured_revenue >= 0
+              and total_completed_refund_amount >= 0
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                net_revenue_after_refunds
+                -
+                (
+                  total_captured_revenue
+                  - total_completed_refund_amount
+                )
+              ) <= 0.01
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              customer_conversion_rate_pct >= 0
+              and customer_conversion_rate_pct <= 100
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              revenue_refund_rate_pct >= 0
+              and revenue_refund_rate_pct <= 100
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "return_on_ad_spend >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "cost_per_attributed_order >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "average_net_order_value >= 0"
+
+    columns:
+      - name: campaign_key
+        description: "Warehouse key connecting campaign performance to dim_campaigns."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_campaigns')
+                field: campaign_key
+
+      - name: campaign_id
+        description: "Source-system campaign identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: budget_amount
+        description: "Marketing budget allocated to the campaign."
+        data_tests:
+          - not_null
+
+      - name: total_web_events
+        description: "Total web engagement events associated with the campaign."
+        data_tests:
+          - not_null
+
+      - name: attributed_order_count
+        description: "Number of orders attributed to the campaign."
+        data_tests:
+          - not_null
+
+      - name: total_captured_revenue
+        description: "Captured payment revenue attributed to the campaign."
+        data_tests:
+          - not_null
+
+      - name: total_completed_refund_amount
+        description: "Completed refunds associated with attributed orders."
+        data_tests:
+          - not_null
+
+      - name: net_revenue_after_refunds
+        description: "Captured revenue minus completed refunds."
+        data_tests:
+          - not_null
+
+      - name: customer_conversion_rate_pct
+        description: >
+          Customer conversion rate expressed as percentage points.
+          For example, 12.50 represents 12.5 percent.
+
+      - name: cost_per_attributed_order
+        description: "Campaign budget divided by attributed orders."
+
+      - name: average_net_order_value
+        description: "Average net revenue per attributed order."
+
+      - name: return_on_ad_spend
+        description: >
+          Net revenue generated for each unit of campaign spend.
+          For example, 4.0 represents four euros of revenue for
+          each euro spent.
+
+      - name: revenue_refund_rate_pct
+        description: >
+          Refunded revenue expressed as a percentage of captured revenue.

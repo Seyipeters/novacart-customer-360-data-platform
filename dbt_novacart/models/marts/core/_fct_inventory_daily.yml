@@ -1,0 +1,117 @@
+version: 2
+
+models:
+  - name: fct_inventory_daily
+    description: >
+      Historical inventory periodic snapshot fact containing one row per
+      product, warehouse, and inventory date.
+
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - inventory_date
+              - warehouse_id
+              - product_id
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              closing_stock =
+              opening_stock
+              + received_quantity
+              - sold_quantity
+              - damaged_quantity
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              abs(
+                inventory_value
+                - (closing_stock * unit_cost)
+              ) <= 0.01
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              opening_stock >= 0
+              and received_quantity >= 0
+              and sold_quantity >= 0
+              and damaged_quantity >= 0
+              and closing_stock >= 0
+              and inventory_value >= 0
+
+    columns:
+      - name: inventory_date
+        description: "Calendar date represented by the inventory snapshot."
+        data_tests:
+          - not_null
+
+      - name: product_key
+        description: "Warehouse key connecting the inventory snapshot to dim_products."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_key
+
+      - name: product_id
+        description: "Source-system product identifier."
+        data_tests:
+          - not_null
+
+      - name: warehouse_key
+        description: "Warehouse key connecting the inventory snapshot to dim_warehouses."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_warehouses')
+                field: warehouse_key
+
+      - name: warehouse_id
+        description: "Source-system warehouse identifier."
+        data_tests:
+          - not_null
+
+      - name: opening_stock
+        description: "Stock quantity at the beginning of the inventory period."
+        data_tests:
+          - not_null
+
+      - name: received_quantity
+        description: "Quantity received during the inventory period."
+        data_tests:
+          - not_null
+
+      - name: sold_quantity
+        description: "Quantity sold during the inventory period."
+        data_tests:
+          - not_null
+
+      - name: damaged_quantity
+        description: "Quantity removed from stock because of damage."
+        data_tests:
+          - not_null
+
+      - name: closing_stock
+        description: "Stock quantity at the end of the inventory period."
+        data_tests:
+          - not_null
+
+      - name: unit_cost
+        description: "Cost per inventory unit."
+        data_tests:
+          - not_null
+
+      - name: inventory_value
+        description: "Closing stock multiplied by unit cost."
+        data_tests:
+          - not_null
+
+      - name: stockout_flag
+        description: "Indicates whether the product was stocked out at the warehouse."
+
+      - name: reorder_flag
+        description: "Indicates whether replenishment was required."

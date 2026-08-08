@@ -1,54 +1,84 @@
-# Environment variables and secrets
+cat > .gitignore <<'EOF'
+# =========================
+# Environment / secrets
+# =========================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
 
-# Python virtual environment
+# =========================
+# Python
+# =========================
 .venv/
 venv/
-
-# Python generated files
 __pycache__/
 *.py[cod]
 *$py.class
 
+# =========================
 # Testing
+# =========================
 .pytest_cache/
 .coverage
 htmlcov/
 
+# =========================
 # Logs
+# =========================
 logs/
-airflow/logs/
 *.log
 
-# Generated and rejected datasets
+# =========================
+# Generated / rejected data
+# =========================
 data/generated/
 data/rejected/
 data/archive/
 
-# Airflow
+# =========================
+# Airflow local runtime
+# =========================
+airflow/logs/
 airflow/airflow.db
 airflow/airflow.cfg
 airflow/webserver_config.py
 airflow/standalone_admin_password.txt
 
-# dbt
+# =========================
+# dbt generated files
+# =========================
 dbt_novacart/target/
 dbt_novacart/logs/
 dbt_novacart/dbt_packages/
 dbt_novacart/profiles.yml
+target/
+dbt_packages/
 
+# =========================
 # Power BI
+# =========================
 *.pbix
 *.pbit
 
-# IDE and operating-system files
+# =========================
+# IDE / local tooling
+# =========================
 .vscode/
 .idea/
+.claude/
+
+# =========================
+# OS files
+# =========================
 .DS_Store
 Thumbs.db
 
-# Terraform
+# =========================
+# Terraform local state
+# =========================
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
+EOF*:Zone.Identifier

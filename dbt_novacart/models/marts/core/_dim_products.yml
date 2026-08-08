@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: dim_products
+    description: >
+      Current-state product dimension containing one row per product,
+      including product descriptions, pricing and calculated unit margins.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "unit_cost >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "list_price >= 0"
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              unit_margin_amount = list_price - unit_cost
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              unit_margin_rate is null
+              or unit_margin_rate <= 1
+
+    columns:
+      - name: product_key
+        description: "Generated warehouse key used to connect products to fact tables."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: product_id
+        description: "Unique business identifier for the product."
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int_ecommerce__products_current')
+                field: product_id
+
+      - name: sku
+        description: "Stock-keeping unit used to identify the product."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: product_name
+        description: "Business name of the product."
+        data_tests:
+          - not_null
+
+      - name: category
+        description: "Main product category."
+        data_tests:
+          - not_null
+
+      - name: subcategory
+        description: "Detailed product subcategory."
+
+      - name: brand
+        description: "Brand associated with the product."
+
+      - name: unit_cost
+        description: "Cost incurred by NovaCart for one unit of the product."
+        data_tests:
+          - not_null
+
+      - name: list_price
+        description: "Standard selling price for one unit of the product."
+        data_tests:
+          - not_null
+
+      - name: unit_margin_amount
+        description: "List price minus unit cost."
+
+      - name: unit_margin_rate
+        description: >
+          Unit margin amount divided by list price.
+          A value of 0.30 represents a 30 percent margin.
+
+      - name: source_updated_at
+        description: "Timestamp when the product was last updated in the source system."
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        description: "Timestamp when the product record entered the warehouse."
+        data_tests:
+          - not_null

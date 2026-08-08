@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: dim_campaigns
+    description: >
+      Current campaign dimension containing one row per marketing campaign.
+
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "end_date >= start_date"
+
+    columns:
+      - name: campaign_key
+        description: "Warehouse key for the campaign."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: campaign_id
+        description: "Source-system campaign identifier."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: campaign_name
+        data_tests:
+          - not_null
+
+      - name: campaign_channel
+        data_tests:
+          - not_null
+
+      - name: start_date
+        data_tests:
+          - not_null
+
+      - name: end_date
+        data_tests:
+          - not_null

@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(wsl bash -lc \"cd ~/data-engineering-projects/novacart-customer-360-data-platform/dbt_novacart && source ../.venv/bin/activate && dbt build --select int_ecommerce__order_items_current+ 2>&1\")"
-    ]
-  }
-}

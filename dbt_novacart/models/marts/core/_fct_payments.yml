@@ -1,0 +1,161 @@
+version: 2
+
+models:
+  - name: fct_payments
+    description: >
+      Payment transaction fact containing one row per payment attempt.
+      Each payment belongs to an order and captures payment method,
+      status, requested amount, captured amount and failure information.
+
+    data_tests:
+      # Grain: an attempt number must occur only once within an order
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - order_id
+              - payment_attempt_number
+
+      # Monetary rules
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              payment_amount >= 0
+              and captured_amount >= 0
+              and captured_amount <= payment_amount
+
+      # PAID payments must actually have captured money
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              payment_status != 'PAID'
+              or (
+                captured_amount > 0
+                and failure_reason is null
+              )
+
+      # FAILED payments must have a failure reason and no captured money
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              payment_status != 'FAILED'
+              or (
+                failure_reason is not null
+                and captured_amount = 0
+              )
+
+      # Pending/cancelled attempts should not have captured money
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              payment_status not in ('PENDING', 'CANCELLED')
+              or captured_amount = 0
+
+      # Derived flags must agree with the underlying data
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              has_captured_amount =
+              case
+                when captured_amount > 0 then true
+                else false
+              end
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: >
+              has_failure_reason =
+              case
+                when failure_reason is not null then true
+                else false
+              end
+
+    columns:
+      - name: payment_id
+        description: "Unique identifier for a payment transaction or attempt."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        description: "Order associated with the payment attempt."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+
+      - name: customer_key
+        description: "Warehouse key linking the payment to dim_customers."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_key
+
+      - name: customer_id
+        description: "Source customer identifier inherited from the order."
+        data_tests:
+          - not_null
+
+      - name: payment_attempt_number
+        description: "Sequential payment-attempt number within an order."
+        data_tests:
+          - not_null
+
+      - name: payment_method
+        description: "Method used for the payment attempt."
+        data_tests:
+          - not_null
+
+      - name: payment_status
+        description: "Current outcome of the payment attempt."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - PAID
+                  - FAILED
+                  - PENDING
+                  - CANCELLED
+
+      - name: payment_amount
+        description: "Amount requested from the payment gateway."
+        data_tests:
+          - not_null
+
+      - name: captured_amount
+        description: "Amount successfully captured by the payment gateway."
+        data_tests:
+          - not_null
+
+      - name: currency
+        description: "Currency associated with the payment."
+        data_tests:
+          - not_null
+
+      - name: payment_timestamp
+        description: "Timestamp when the payment attempt occurred."
+        data_tests:
+          - not_null
+
+      - name: payment_date
+        description: "Calendar date of the payment attempt."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+
+      - name: has_captured_amount
+        description: "True when the payment captured a positive amount."
+        data_tests:
+          - not_null
+
+      - name: has_failure_reason
+        description: "True when a payment failure reason is present."
+        data_tests:
+          - not_null
