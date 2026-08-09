@@ -34,6 +34,12 @@ The platform creates a unified analytics layer for questions such as:
 
 ---
 
+## Architecture
+
+![NovaCart Architecture](assets/novacart-final-architecture.png)
+
+---
+
 ## Technology Stack
 
 **Data Engineering**
