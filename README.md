@@ -2,10 +2,6 @@
 
 A production-style data engineering project that integrates e-commerce, customer, payment, return, inventory, marketing, and web analytics data into a tested **Snowflake dimensional warehouse**.
 
-The platform is being extended with **Snowpipe, incremental processing, SCD Type 2, Apache Airflow, Power BI, and an AI/RAG analytics assistant**.
-
-![NovaCart Architecture](assets/novacart-final-architecture.png)
-
 ---
 
 ## Project Goal
@@ -248,4 +244,6 @@ The next phase focuses on production automation, BI, and AI-driven analytics.
 
 ---
 
-**Built as a hands-on portfolio project demonstrating practical data engineering, dimensional modelling, data quality, cloud warehousing, orchestration, analytics, and AI data engineering.**
+## Author
+
+Built as a hands-on data engineering portfolio project focused on production thinking, dimensional modelling, data quality, analytics engineering, orchestration, and AI-enabled data platforms.
