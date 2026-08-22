@@ -1,8 +1,24 @@
+{{ config(
+    materialized='incremental',
+    unique_key='customer_source_record_id',
+    incremental_strategy='merge'
+) }}
+
 with source as (
 
     select *
     from {{ source('raw', 'customers') }}
 
+    {% if is_incremental() %}
+
+        where loaded_at >= (
+            select coalesce(
+                max(loaded_at)
+            )
+            from {{ this }}
+        )
+
+    {% endif %}
 ),
 
 cleaned as (
