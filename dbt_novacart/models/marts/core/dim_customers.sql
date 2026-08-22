@@ -13,7 +13,8 @@ with customers as (
         source_updated_at,
         loaded_at
 
-    from {{ ref('int_crm__customers_current') }}
+    from {{ ref('snap_crm__customers_scd2') }}
+    where dbt_valid_to is null
 
 ),
 
